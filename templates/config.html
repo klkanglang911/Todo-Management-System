@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}配置 - 待办事项{% endblock %}
+
+{% block content %}
+<!-- 页面标题 -->
+<section class="mb-16">
+    <h1 class="text-4xl font-bold text-neutral-900 mb-3">系统配置</h1>
+    <p class="text-lg text-neutral-500">管理通知机器人和提醒规则</p>
+</section>
+
+<!-- 提醒规则说明 -->
+<section class="mb-12">
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-6">
+        <h3 class="text-lg font-medium text-blue-900 mb-3">📋 提醒规则说明</h3>
+        <div class="space-y-2 text-sm text-blue-800">
+            <p><strong>≤ 7天：</strong>每日提醒模式 - 在指定时间每天发送提醒</p>
+            <p><strong>> 7天：</strong>单次提醒模式 - 仅在设定的时间点发送一次提醒</p>
+            <p><strong>示例：</strong></p>
+            <ul class="ml-4 space-y-1">
+                <li>• 距截止6天 → 每天10:30提醒</li>
+                <li>• 距截止7天 → 在第7天10:30提醒一次</li>
+                <li>• 距截止30天 → 在第30天10:30提醒一次</li>
+                <li>• 距截止8天且无8天设置 → 不提醒</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- 机器人配置 -->
+<section class="mb-20">
+    <h2 class="text-2xl font-semibold text-neutral-900 mb-8">通知机器人</h2>
+    
+    <!-- 添加机器人 -->
+    <div class="bg-neutral-50 rounded-xl p-8 mb-8">
+        <h3 class="text-lg font-medium text-neutral-900 mb-6">添加新机器人</h3>
+        <form method="POST" action="{{ url_for('add_robot') }}" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <label for="name" class="block text-sm font-medium text-neutral-700 mb-2">机器人名称 *</label>
+                    <input type="text" 
+                           id="name"
+                           name="name" 
+                           required
+                           class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus-ring focus:border-accent-blue transition-colors">
+                </div>
+                
+                <div>
+                    <label for="webhook_url" class="block text-sm font-medium text-neutral-700 mb-2">Webhook URL *</label>
+                    <input type="url" 
+                           id="webhook_url"
+                           name="webhook_url" 
+                           required
+                           class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus-ring focus:border-accent-blue transition-colors">
+                </div>
+            </div>
+            
+            <div>
+                <label for="description" class="block text-sm font-medium text-neutral-700 mb-2">描述</label>
+                <textarea id="description"
+                          name="description" 
+                          rows="2"
+                          class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus-ring focus:border-accent-blue resize-none transition-colors"></textarea>
+            </div>
+            
+            <div class="flex justify-end">
+                <button type="submit" 
+                        class="px-6 py-3 bg-accent-blue text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    添加机器人
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- 机器人列表 -->
+    <div class="space-y-4">
+        {% for robot in robots %}
+        <div class="bg-white border border-neutral-200 rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <h4 class="text-lg font-medium text-neutral-900 mb-1">{{ robot.name }}</h4>
+                    <p class="text-sm text-neutral-500 mb-2">{{ robot.description or '无描述' }}</p>
+                    <p class="text-xs text-neutral-400 font-mono">{{ robot.webhook_url[:50] }}...</p>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <a href="{{ url_for('test_wechat', robot_id=robot.id) }}" 
+                       class="px-3 py-2 text-sm font-medium text-accent-blue bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                        测试
+                    </a>
+                    <a href="{{ url_for('delete_robot', robot_id=robot.id) }}" 
+                       class="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                        删除
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- 提醒设置 -->
+<section class="mb-16">
+    <h2 class="text-2xl font-semibold text-neutral-900 mb-8">提醒规则配置</h2>
+    
+    <!-- 添加提醒规则 -->
+    <div class="bg-neutral-50 rounded-xl p-8 mb-8">
+        <h3 class="text-lg font-medium text-neutral-900 mb-6">添加提醒规则</h3>
+        <form method="POST" action="{{ url_for('add_reminder') }}" class="flex items-end space-x-4">
+            <div class="flex-1">
+                <label for="days_before" class="block text-sm font-medium text-neutral-700 mb-2">提前天数</label>
+                <input type="number" 
+                       id="days_before"
+                       name="days_before" 
+                       min="0" 
+                       required
+                       placeholder="例如: 7, 30"
+                       class="w-full px-4 py-3 border border-neutral-300 rounded-lg focus-ring focus:border-accent-blue transition-colors">
+            </div>
+            <button type="submit" 
+                    class="px-6 py-3 bg-accent-blue text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                添加规则
+            </button>
+        </form>
+    </div>
+    
+    <!-- 提醒规则列表 -->
+    <div class="space-y-4">
+        {% for setting in reminder_settings %}
+        <div class="bg-white border border-neutral-200 rounded-xl p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="flex items-center space-x-3 mb-2">
+                        <h4 class="text-lg font-medium text-neutral-900">
+                            {% if setting.days_before == 0 %}
+                                当天提醒
+                            {% else %}
+                                提前 {{ setting.days_before }} 天
+                            {% endif %}
+                        </h4>
+                        <span class="px-2 py-1 rounded-full text-xs font-medium
+                            {% if setting.days_before <= 7 %}bg-green-100 text-green-700
+                            {% else %}bg-blue-100 text-blue-700{% endif %}">
+                            {% if setting.days_before <= 7 %}每日提醒
+                            {% else %}单次提醒{% endif %}
+                        </span>
+                    </div>
+                    <p class="text-sm text-neutral-500">
+                        {% if setting.days_before == 0 %}
+                            在任务到期当天开始每日发送提醒
+                        {% elif setting.days_before <= 7 %}
+                            在任务到期前 {{ setting.days_before }} 天开始每日发送提醒
+                        {% else %}
+                            在任务到期前 {{ setting.days_before }} 天发送一次提醒
+                        {% endif %}
+                    </p>
+                </div>
+                <a href="{{ url_for('delete_reminder', reminder_id=setting.id) }}" 
+                   class="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                    删除
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- 返回按钮 -->
+<div class="text-center">
+    <a href="{{ url_for('index') }}" 
+       class="inline-flex items-center text-sm text-neutral-500 hover:text-neutral-900 transition-colors">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        返回主页
+    </a>
+</div>
+{% endblock %}
