@@ -120,8 +120,8 @@ def init_db():
     # 插入默认用户（如果不存在）
     c.execute('SELECT COUNT(*) FROM users')
     if c.fetchone()[0] == 0:
-        username = 'jerson'
-        password = 'HN@Kiz78L,h2'
+        username = 'admin'
+        password = 'admin'
         password_hash = hash_password(password)
         c.execute('INSERT INTO users (username, password_hash, timezone) VALUES (?, ?, ?)',
                   (username, password_hash, 'Asia/Shanghai'))
@@ -132,7 +132,7 @@ def init_db():
         c.execute('''INSERT INTO robots (name, webhook_url, description) 
                      VALUES (?, ?, ?)''',
                   ('默认机器人', 
-                   'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=3c25323c-4083-4b54-9854-5c8cd42fddb9',
+                   'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=[你的key]',
                    '主要通知机器人'))
     
     # 插入默认提醒设置（如果不存在）
